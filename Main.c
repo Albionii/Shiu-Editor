@@ -1,8 +1,11 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_mouse.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <wchar.h>
 
 #define WINDOW_TITLE "Shiu Editor"
@@ -15,29 +18,40 @@ struct Editor {
 };
 
 bool sdl_initialize(struct Editor *editor);
-void editor_cleanup(struct Editor *editor);
+void editor_cleanup(struct Editor *editor, int exit_status);
 
 int main() {
     struct Editor editor = {
         .window = NULL,
         .renderer = NULL
     };
-    
+
     if(sdl_initialize(&editor)){
-        editor_cleanup(&editor);
-        exit(0);
+        editor_cleanup(&editor, EXIT_FAILURE);
     };
-
-
     
-    editor_cleanup(&editor);
+    //Here is the main editor logic
+    SDL_Event event;
+    int running = 1;
+    while (running) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                running = false;
+            }
+        }
+    }
+
+
+
+    editor_cleanup(&editor, EXIT_SUCCESS);
     return 0;
 }
 
-void editor_cleanup(struct Editor *editor){
+void editor_cleanup(struct Editor *editor, int exit_status){
     SDL_DestroyRenderer(editor -> renderer);
     SDL_DestroyWindow(editor -> window);
     SDL_Quit();
+    exit(exit_status);
 }
 
 bool sdl_initialize(struct Editor *editor){
@@ -45,7 +59,7 @@ bool sdl_initialize(struct Editor *editor){
         fprintf(stderr, "SDL_Init error: %s\n", SDL_GetError());
         return 1;
     }
-    
+
     editor->window = SDL_CreateWindow(
         WINDOW_TITLE,
         SDL_WINDOWPOS_CENTERED,
@@ -54,20 +68,20 @@ bool sdl_initialize(struct Editor *editor){
         SCREEN_HEIGHT,
         SDL_WINDOW_HIDDEN
     );
-    
+
     if (!editor -> window){
         fprintf(stderr, "Error creating window: %s\n", SDL_GetError());
         return 1;
     }
-    
+
     editor -> renderer = SDL_CreateRenderer(editor->window, -1, 0);
-    
+
     if (!editor -> renderer){
         fprintf(stderr, "Error creating renderer: %s\n", SDL_GetError());
         return 1;
     }
-    
+
     SDL_ShowWindow(editor->window);
-    
+
     return 0;
 }
