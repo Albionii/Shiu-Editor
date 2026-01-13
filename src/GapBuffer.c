@@ -63,8 +63,6 @@ void gb_move_cursor(GapBuffer *gb, size_t position){
         gb->gap_left++;
         gb->gap_right++;
     }
-    
-    //TODO:What about the position == gap_left ?
 }
 
 void gb_backspace(GapBuffer *gb){
@@ -85,7 +83,6 @@ void gb_insert(GapBuffer *gb, const char *input){
     if (gb->gap_right - gb->gap_left + 1 <= len){
         gb_grow(gb, len > 10 ? len : 10);
     }
-    
     
     for (int i = 0; i < len; i++){
         gb->buffer[gb->gap_left++] = input[i];
