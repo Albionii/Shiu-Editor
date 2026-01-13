@@ -128,3 +128,18 @@ void gb_render(GapBuffer *gb){
     }
    putchar('\n'); 
 }
+
+char* gb_get_string(GapBuffer *gb) {
+    size_t left_len = gb->gap_left;
+    size_t right_len = gb->capacity - (gb->gap_right + 1);
+    size_t total_len = left_len + right_len;
+
+    char *str = malloc(total_len + 1);
+    if (!str) return NULL;
+
+    memcpy(str, gb->buffer, left_len);
+    memcpy(str + left_len, gb->buffer + gb->gap_right + 1, right_len);
+    
+    str[total_len] = '\0'; 
+    return str;
+}
