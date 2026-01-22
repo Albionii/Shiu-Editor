@@ -23,7 +23,10 @@ GapBuffer* gb_create(size_t initial_capacity){
  */
 void gb_grow(GapBuffer *gb, size_t gap_extra_size){
     size_t old_capacity = gb->capacity;
-    size_t new_capacity = old_capacity + gap_extra_size;
+    size_t new_capacity = old_capacity * 2;
+    if (new_capacity < old_capacity + gap_extra_size) {
+        new_capacity = old_capacity + gap_extra_size + 1024;
+    }
    
     //Instead of malloc() here the realloc() is better, if the gap is increased
     //but is the capacity of the buffer does not need to change then this comes
@@ -37,12 +40,12 @@ void gb_grow(GapBuffer *gb, size_t gap_extra_size){
     gb->buffer = new_buffer;
     
     size_t right_size = old_capacity - gb->gap_right - 1;
-    size_t new_gap_right = gb->gap_left + (gb->gap_right - gb->gap_left + gap_extra_size);
+    size_t new_gap_right = new_capacity - right_size - 1;
     
     memmove(gb->buffer + new_gap_right + 1, 
-               gb->buffer + gb->gap_right + 1, 
-               right_size
-    );
+            gb->buffer + gb->gap_right + 1, 
+            right_size
+    );  
     
     gb->gap_right = new_gap_right;
     gb->capacity = new_capacity;

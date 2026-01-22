@@ -23,6 +23,7 @@
 #define WINDOW_TITLE "Shiu Editor"
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 600
+#define WRAP_TEXT_WIDTH 700
 #define MAX_BUFFER 2048
 
 struct Editor {
@@ -42,6 +43,7 @@ void window_customize(struct Editor *editor);
 void handle_key_presses(struct Editor *editor, SDL_Event *event);
 void update_text_texture(struct Editor *editor, const char *new_text);
 void draw_cursor(struct Editor *editor);
+void save_to_file(struct Editor *editor, char *filename);
 
 int main() {
     struct Editor editor = {0};
@@ -145,7 +147,6 @@ bool sdl_initialize(struct Editor *editor){
     }
     
     SDL_StartTextInput();
-
     return 0;
 }
 
@@ -155,8 +156,17 @@ void window_customize(struct Editor *editor){
 
 void handle_key_presses(struct Editor *editor, SDL_Event *event){
     switch(event->key.keysym.sym){
-        case SDLK_UP:
+        case SDLK_UP: {
+            if (editor->gb->gap_left == 0) break;
+            size_t gl = editor->gb->gap_left;
+            while (gl > 0 && editor->gb->buffer[gl-1] != '\n') gl--;
+            if(gl == 0) break;
+           
+            gl--;
+            
+            gb_move_cursor(editor->gb, gl);
             break;
+        }
         case SDLK_LEFT:
             if (editor->gb->gap_left > 0) {
                 gb_move_cursor(editor->gb, editor->gb->gap_left - 1);
@@ -169,7 +179,10 @@ void handle_key_presses(struct Editor *editor, SDL_Event *event){
             }
             break;
         }
-        case SDLK_DOWN: 
+        case SDLK_DOWN:
+            printf("BUFFER SIZE : %ld \n", editor->gb->capacity);
+            printf("GAP LEFT : %ld \n", editor->gb->gap_left);
+            printf("GAP RIGHT : %ld \n", editor->gb->gap_right);
             break;
         case SDLK_KP_ENTER:
         case SDLK_RETURN: 
@@ -177,6 +190,13 @@ void handle_key_presses(struct Editor *editor, SDL_Event *event){
             break;
         case SDLK_BACKSPACE:
             gb_backspace(editor->gb);
+            break;
+            
+        case SDLK_s: 
+            Uint16 s = event->key.keysym.mod;
+            if(s && KMOD_CTRL){
+                save_to_file(editor, "jamesbond.c");
+            }
             break;
         default:
             break;
@@ -201,7 +221,7 @@ void update_text_texture(struct Editor *editor, const char *new_text) {
         editor->font,
         text_to_render,
         white,
-        SCREEN_WIDTH);
+        WRAP_TEXT_WIDTH);
     
     if (surface) {
         editor->text_texture = SDL_CreateTextureFromSurface(editor->renderer, surface);
@@ -209,10 +229,34 @@ void update_text_texture(struct Editor *editor, const char *new_text) {
         editor->text_rect.h = surface->h;
         SDL_FreeSurface(surface);
     }
-
+    free(text_to_render);
 }
 
 
 void draw_cursor(struct Editor *editor) {
     
+}
+
+
+
+void save_to_file(struct Editor *editor, char *filename){
+    FILE *file = fopen(filename, "w");  
+    if (!file){
+        printf("ERROR: Could not open file %s for writing : ", filename);
+        return;
+    }
+    
+    if (editor->gb->gap_left > 0){
+        fwrite(editor->gb->buffer, 1, editor->gb->gap_left, file);
+    }
+    
+    size_t right_side = editor->gb->gap_right + 1;
+    size_t right_side_length = editor->gb->capacity - right_side;
+    
+    if (right_side_length > 0) {
+        fwrite(editor->gb->buffer + right_side, 1, right_side_length, file);
+    }
+    
+    fclose(file);
+    printf("I saved the file bro : %s", filename);
 }
