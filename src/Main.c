@@ -25,6 +25,7 @@
 #define SCREEN_HEIGHT 600
 #define WRAP_TEXT_WIDTH 700
 #define MAX_BUFFER 2048
+#define MAX_FILE_PATH_SIZE 1024
 
 struct Editor {
     SDL_Window *window;
@@ -46,6 +47,7 @@ void handle_key_presses(struct Editor *editor, SDL_Event *event);
 void update_text_texture(struct Editor *editor, const char *new_text);
 void draw_cursor(struct Editor *editor);
 void save_to_file(struct Editor *editor, char *filename);
+char* get_filename_from_zenity();
 
 int main() {
     struct Editor editor = {0};
@@ -158,7 +160,8 @@ void window_customize(struct Editor *editor){
 }
 
 void handle_key_presses(struct Editor *editor, SDL_Event *event){
-    switch(event->key.keysym.sym){
+    bool text_changed = false;
+    switch(event->key.keysym.sym){  
         case SDLK_UP: {
             if (editor->gb->gap_left == 0) break;
             size_t gl = editor->gb->gap_left;
@@ -169,7 +172,7 @@ void handle_key_presses(struct Editor *editor, SDL_Event *event){
             gb_move_cursor(editor->gb, gl);
             break;
         }
-        case SDLK_DOWN:
+        case SDLK_DOWN:;
             size_t capacity = editor->gb->capacity;
             size_t gr = editor->gb->gap_right+1;
             
@@ -195,24 +198,27 @@ void handle_key_presses(struct Editor *editor, SDL_Event *event){
         case SDLK_KP_ENTER:
         case SDLK_RETURN:
             gb_insert(editor->gb, "\n");
+            text_changed = true;
             break;
         case SDLK_BACKSPACE:
             gb_backspace(editor->gb);
+            text_changed = true;
             break;
         //Save the file Ctrl + s
         case SDLK_s:
             if(event->key.keysym.mod & SDLK_LCTRL){
-                save_to_file(editor, "jamesbond.c");
+                char *path = get_filename_from_zenity();
+                if (path != NULL) {
+                    save_to_file(editor, path);
+                    printf("Saved to: %s\n", path);
+                    free(path);
+                }
             }
-
-            //TODO:Maybe should add Save as to differ from Save
             break;
         default:
             break;
     }
-    //Update the texture when change is made
-    // TODO: This should probably change for optimization
-    update_text_texture(editor, NULL);
+    if (text_changed) update_text_texture(editor, NULL);
 }
 void update_text_texture(struct Editor *editor, const char *new_text) {
     if (new_text){
@@ -273,15 +279,22 @@ void draw_cursor(struct Editor *editor) {
 }
 
 
-void filename_popup(struct Editor *editor){
+char* get_filename_from_zenity(){
     FILE *file = popen("zenity --file-selection --save --confirm-overwrite --title='What shall be thy name?'","r");
     if (!file) {
         printf("ERROR: Could not open zenity %p : ", file);
-        return;
+        return NULL;
     }
-
-    char path[100];
-    fclose(file);
+    
+    char *path = malloc(MAX_FILE_PATH_SIZE);
+    if (fgets(path, MAX_FILE_PATH_SIZE, file) != NULL) {
+        path[strcspn(path, "\n")] = 0;
+        pclose(file);
+        return path;
+    }
+    pclose(file);
+    free(path);
+    return NULL;    
 }
 
 
