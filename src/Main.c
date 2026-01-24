@@ -190,18 +190,20 @@ void handle_key_presses(struct Editor *editor, SDL_Event *event){
             break;
         case SDLK_BACKSPACE:
             gb_backspace(editor->gb);
-            break;
-            
+            break;     
+        //Save the file Ctrl + s
         case SDLK_s: 
-            Uint16 s = event->key.keysym.mod;
-            if(s && KMOD_CTRL){
+            if(event->key.keysym.mod & SDLK_LCTRL){
                 save_to_file(editor, "jamesbond.c");
             }
+            
+            //TODO:Maybe should add Save as to differ from Save
             break;
         default:
             break;
     }
     //Update the texture when change is made
+    // TODO: This should probably change for optimization
     update_text_texture(editor, NULL);
 }
 void update_text_texture(struct Editor *editor, const char *new_text) {
@@ -233,13 +235,31 @@ void update_text_texture(struct Editor *editor, const char *new_text) {
 }
 
 
+/**
+ * Draws the cursor where the next character will be written.
+ */
 void draw_cursor(struct Editor *editor) {
     
 }
 
 
+void filename_popup(struct Editor *editor){
+    FILE *file = popen("zenity --file-selection --save --confirm-overwrite --title='What shall be thy name?'","r");
+    if (!file) {
+        printf("ERROR: Could not open zenity %p : ", file);
+        return;
+    }
+    
+    char path[100];
+    fclose(file);
+}   
 
+
+/**
+ * Saved the text inside editor into a file.
+ */
 void save_to_file(struct Editor *editor, char *filename){
+    // filename_popup(editor);
     FILE *file = fopen(filename, "w");  
     if (!file){
         printf("ERROR: Could not open file %s for writing : ", filename);
@@ -256,7 +276,6 @@ void save_to_file(struct Editor *editor, char *filename){
     if (right_side_length > 0) {
         fwrite(editor->gb->buffer + right_side, 1, right_side_length, file);
     }
-    
     fclose(file);
-    printf("I saved the file bro : %s", filename);
 }
+
