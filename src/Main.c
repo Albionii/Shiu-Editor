@@ -170,7 +170,15 @@ void handle_key_presses(struct Editor *editor, SDL_Event *event){
             break;
         }
         case SDLK_DOWN:
-
+            size_t capacity = editor->gb->capacity;
+            size_t gr = editor->gb->gap_right;
+            
+            while (gr < capacity && editor->gb->buffer[gr] != '\n') gr++;
+            
+            if (gr >=capacity+1) break;
+            
+            size_t new_pos = editor->gb->gap_left + (gr - editor->gb->gap_right);
+            gb_move_cursor(editor->gb, new_pos);
             break;
         case SDLK_LEFT:
             if (editor->gb->gap_left > 0) {
