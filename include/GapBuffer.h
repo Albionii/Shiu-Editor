@@ -22,5 +22,9 @@ void gb_render(GapBuffer *gb);
 void gb_visual_debug(GapBuffer *gb);
 void gb_cleanup(GapBuffer *gb);
 char* gb_get_string(GapBuffer *gb);
+void print_buffer(GapBuffer *gb);
+void gb_cleanup(GapBuffer *gb);
+void gb_destroy(GapBuffer *gb);
+
 
 #endif

@@ -48,6 +48,7 @@ void update_text_texture(struct Editor *editor, const char *new_text);
 void draw_cursor(struct Editor *editor);
 void save_to_file(struct Editor *editor, char *filename);
 char* get_filename_from_zenity();
+void open_file(struct Editor *editor, char *file_path);
 
 int main() {
     struct Editor editor = {0};
@@ -55,13 +56,13 @@ int main() {
     if(sdl_initialize(&editor)){
         editor_cleanup(&editor, EXIT_FAILURE);
     };
-    
+
     editor.gb = gb_create(1024);
-    
+
     //Here is the main editor logic
 
     // window_customize(&editor);
-    
+
     SDL_Event event;
 
     editor.text_rect.x = 50;
@@ -161,7 +162,7 @@ void window_customize(struct Editor *editor){
 
 void handle_key_presses(struct Editor *editor, SDL_Event *event){
     bool text_changed = false;
-    switch(event->key.keysym.sym){  
+    switch(event->key.keysym.sym){
         case SDLK_UP: {
             if (editor->gb->gap_left == 0) break;
             size_t gl = editor->gb->gap_left;
@@ -175,11 +176,11 @@ void handle_key_presses(struct Editor *editor, SDL_Event *event){
         case SDLK_DOWN:;
             size_t capacity = editor->gb->capacity;
             size_t gr = editor->gb->gap_right+1;
-            
+
             while (gr < capacity && editor->gb->buffer[gr] != '\n') gr++;
-            
+
             if (gr >=capacity-1) break;
-            
+
             size_t new_pos = editor->gb->gap_left + (gr - editor->gb->gap_right);
             gb_move_cursor(editor->gb, new_pos);
             break;
@@ -210,8 +211,20 @@ void handle_key_presses(struct Editor *editor, SDL_Event *event){
                 char *path = get_filename_from_zenity();
                 if (path != NULL) {
                     save_to_file(editor, path);
-                    printf("Saved to: %s\n", path);
                     free(path);
+                }
+            }
+            break;
+        case SDLK_o:
+            if (event->key.keysym.mod & KMOD_CTRL){
+                FILE *fp = popen("zenity --file-selection --title='Open File'", "r");
+                if (fp) {
+                    char path[MAX_FILE_PATH_SIZE];
+                    if (fgets(path, MAX_FILE_PATH_SIZE, fp) != NULL){
+                        path[strcspn(path, "\n")] = 0;
+                        open_file(editor, path);
+                    }
+                    pclose(fp);
                 }
             }
             break;
@@ -285,7 +298,7 @@ char* get_filename_from_zenity(){
         printf("ERROR: Could not open zenity %p : ", file);
         return NULL;
     }
-    
+
     char *path = malloc(MAX_FILE_PATH_SIZE);
     if (fgets(path, MAX_FILE_PATH_SIZE, file) != NULL) {
         path[strcspn(path, "\n")] = 0;
@@ -294,7 +307,7 @@ char* get_filename_from_zenity(){
     }
     pclose(file);
     free(path);
-    return NULL;    
+    return NULL;
 }
 
 
@@ -320,4 +333,27 @@ void save_to_file(struct Editor *editor, char *filename){
         fwrite(editor->gb->buffer + right_side, 1, right_side_length, file);
     }
     fclose(file);
+}
+
+
+void open_file(struct Editor *editor, char *file_path){
+    FILE *file = fopen(file_path, "r");
+    if (!file) {
+        printf("Could not open file");
+    }
+    
+    //Clean current buffer before reading the file. DO NOT DESTROY IT !!!
+    gb_cleanup(editor->gb);
+    
+    char chunk[4096];
+    size_t bytes_read;
+    
+    while ((bytes_read = fread(chunk, 1, sizeof(chunk) - 1, file)) > 0){
+        chunk[bytes_read] = '\0';
+        gb_insert(editor->gb, chunk);
+    }
+    
+    //I need this to put the cursor at the beggining of the editor
+    editor->gb->gap_left = 0;
+    editor->gb->gap_right = 0;
 }

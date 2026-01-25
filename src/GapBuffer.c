@@ -74,9 +74,14 @@ void gb_backspace(GapBuffer *gb){
     }
 }
 
-void gb_cleanup(GapBuffer *gb){
+void gb_destroy(GapBuffer *gb){
     free(gb->buffer);
     free(gb);
+}
+
+void gb_cleanup(GapBuffer *gb) {
+    gb->gap_left = 0;
+    gb->gap_right = gb->capacity - 1;
 }
 
 
@@ -92,6 +97,7 @@ void gb_insert(GapBuffer *gb, const char *input){
     }
 }
 
+
 /**
  * For debugging to see the "gap" in the buffer.
  */
@@ -105,19 +111,7 @@ void print_buffer(GapBuffer *gb) {
     }
     putchar('\n');
 
-    for (size_t i = 0; i < gb->capacity; i++) {
-        if (i == gb->gap_left && i == gb->gap_right) {
-            printf("^"); 
-        } else if (i == gb->gap_left) {
-            printf("L"); // Start of gap
-        } else if (i == gb->gap_right) {
-            printf("R"); // End of gap
-        } else if (i > gb->gap_left && i < gb->gap_right) {
-            printf("-");
-        } else {
-            printf(" ");
-        }
-    }
+    
     printf(" (L:%zu, R:%zu, Cap:%zu)\n\n", gb->gap_left, gb->gap_right, gb->capacity);
 }
 
