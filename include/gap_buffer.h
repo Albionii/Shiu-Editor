@@ -1,8 +1,6 @@
-#ifndef GAP_BUFFER_H
-#define GAP_BUFFER_H
+#pragma once
 
 #include <stddef.h>
-
 
 typedef struct {
     char *buffer;
@@ -18,6 +16,7 @@ GapBuffer* gb_create(size_t initial_capacity);
 void gb_insert(GapBuffer *gb, const char *input);
 void gb_move_cursor(GapBuffer *gb, size_t position);
 void gb_backspace(GapBuffer *gb);
+void gb_delete(GapBuffer *gb);
 void gb_render(GapBuffer *gb);
 void gb_visual_debug(GapBuffer *gb);
 void gb_cleanup(GapBuffer *gb);
@@ -27,4 +26,3 @@ void gb_cleanup(GapBuffer *gb);
 void gb_destroy(GapBuffer *gb);
 
 
-#endif

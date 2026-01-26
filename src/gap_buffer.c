@@ -1,4 +1,4 @@
-#include "../include/GapBuffer.h"
+#include "../include/gap_buffer.h"
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -71,6 +71,12 @@ void gb_move_cursor(GapBuffer *gb, size_t position){
 void gb_backspace(GapBuffer *gb){
     if (gb->gap_left > 0) {
         gb->gap_left--;
+    }
+}
+
+void gb_delete(GapBuffer *gb) {
+    if (gb->gap_right < gb->capacity - 1){
+        gb->gap_right++;
     }
 }
 
