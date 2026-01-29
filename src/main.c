@@ -34,9 +34,10 @@ int main() {
                 case SDL_KEYDOWN:
                     handle_key_presses(&editor, &event);
                     break;
-                case SDL_MOUSEWHEEL: 
+                case SDL_MOUSEWHEEL:
+                    if (event.wheel.y > 0) scroll_down(&editor);
+                    else scroll_up(&editor);
                     break;
-                
                 default:
                     break;
             }
@@ -45,7 +46,7 @@ int main() {
 
         SDL_SetRenderDrawColor(editor.renderer, 30, 30, 30, 255);
         SDL_RenderClear(editor.renderer);
-        SDL_RenderCopy(editor.renderer, editor.text_texture, NULL, &editor.text_rect);
+        draw_lines(&editor);
         draw_cursor(&editor);
         SDL_RenderPresent(editor.renderer);
 

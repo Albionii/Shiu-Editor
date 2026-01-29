@@ -17,6 +17,8 @@ struct Editor {
     SDL_Rect text_rect;
     int char_w;
     int char_h;
+    int cursor_row;
+    int cursor_col;
     GapBuffer *gb;
 };
 
@@ -25,3 +27,6 @@ void editor_cleanup(struct Editor *editor, int exit_status);
 void update_text_texture(struct Editor *editor, const char *new_text);
 void draw_cursor(struct Editor *editor);
 void handle_key_presses(struct Editor *editor, SDL_Event *event);
+void scroll_down(struct Editor *editor);
+void scroll_up(struct Editor *editor);
+void draw_lines(struct Editor *editor);
