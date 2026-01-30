@@ -98,7 +98,7 @@ void gb_insert(GapBuffer *gb, const char *input){
         gb_grow(gb, len > 10 ? len : 10);
     }
     
-    for (int i = 0; i < len; i++){
+    for (size_t i = 0; i < len; i++){
         gb->buffer[gb->gap_left++] = input[i];
     }
 }

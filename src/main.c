@@ -21,7 +21,6 @@ int main() {
     editor.text_rect.x = 50;
     editor.text_rect.y = 50;
 
-    bool needs_update = true;
     while (true) {
         while (SDL_PollEvent(&event)) {
             switch(event.type){
