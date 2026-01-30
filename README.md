@@ -19,13 +19,30 @@ sudo apt-get install libsdl2-dev libsdl2-ttf-dev zenity
 ```
 ## Installation
 
-Clone the repository then compile using gcc:
-
+Clone the repository and build using the provided Makefile. This will organize builds into build/ and bin/
+directories and optimize the binary. Run these command on the root folder.
 ```bash
-gcc Main.c -o ShiuEditor -lSDL2 -lSDL2_ttf
+# Build the project
+make
 ```
+Run the command below to make the binary available system-wide.
+```bash
+# Make a symlink to the binary
+make install
+```
+
 ## Usage
 Shortcut	Action
 - Ctrl + S	Save File (Zenity popup)
 - Ctrl + O	Open File (Zenity popup)
 - Arrows	Navigate through text
+
+## Uninstalling
+
+If you want to remove the symlink, on the root folder run this makefile command: 
+
+```bash
+make uninstall
+```
+
+*Thank you for using Shiu!*
