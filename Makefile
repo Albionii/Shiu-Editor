@@ -30,6 +30,12 @@ clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
 
 install: all
-	sudo ln -sf $(PWD)/$(TARGET) /usr/local/bin/shiu
+	@sudo mkdir -p /usr/local/bin
+	@sudo ln -sf "$(PWD)/$(TARGET)" /usr/local/bin/shiu
+	@echo "Installed successfully! Have fun using my editor :)"
 
-.PHONY: all clean strip install
+uninstall:
+	@sudo rm -f /usr/local/bin/shiu
+	@echo "Uninstalled successfully! Thank you for your time."
+	
+.PHONY: all clean strip install uninstall
